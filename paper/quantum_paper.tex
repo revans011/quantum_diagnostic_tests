@@ -1,0 +1,269 @@
+\documentclass[11pt]{article}
+
+% ------------------------------------------------------------------
+% PACKAGES (all TinyTeX + arXiv safe)
+% ------------------------------------------------------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs} 
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% ------------------------------------------------------------------
+% TITLE / AUTHORS
+% ------------------------------------------------------------------
+\title{Quantum-Inspired One-Test Latent Class Model \\
+(Single Population, Latent \(Z\))}
+
+\author{
+Richard J. Evans\\
+\small Clinical and Translational Science Institue, University of Minnesota\\
+\small \texttt{evan0770@umn.edu}
+}
+
+\date{December 1, 2015}
+
+% ------------------------------------------------------------------
+% DOCUMENT
+% ------------------------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document introduces two quantum-inspired latent class Bayesian models for the assessment of diagnostic tests when there is no gold standard test. The first model is for a single diagnostic test and a single population, and the second model is for two tests measured on the same subjects in a single population. These models include terms for quantum coherence and entanglement, which may be useful when assesseing diagnostic tests that use a single diagnostic test and a single latent class, using a qubit-based density matrix and a two-outcome POVM to generalize the classical sensitivity/specificity formulation.
+\end{abstract}
+
+% ------------------------------------------------------------------
+% MAIN TEXT
+% ------------------------------------------------------------------
+
+\section{Introduction}
+
+Quantum statistical inference was develeped beginning in the late 1960's. Early quantum statistical inference was developed in the context of information, and comparing quantum, Bayesian and frequentist decision making. In particular, Helstrom \cite{helstrom1969quantum} developed the theory of quantum detection and estimation theory, which provides a framework for optimal decision making in the presence of quantum states and measurements. Malley and Hornstein \cite{malley1993quantum} further extended these ideas to develop a quantum statistical inference framework that incorporates Bayesian principles. 
+
+\section{Background}
+
+\autoref{tab:diagnostic-tests} summarizes several diagnostic modalities that rely on quantum coherence or quantum correlations to generate diagnostic information.  
+These modalities include magnetic resonance imaging (MRI), nuclear magnetic resonance (NMR) spectroscopy, optical coherence tomography (OCT), coherent anti-Stokes Raman spectroscopy (CARS), nitrogen-vacancy (NV) center diamond magnetometry, interferometric biosensors, and quantum-enhanced or entanglement-assisted imaging techniques such as quantum illumination.  
+In each case, the diagnostic signal arises from phase-coherent quantum phenomena, such as spin superposition, optical interference, molecular vibrational coherence, or entanglement between photon pairs.  
+Decoherence processes and phase-sensitive detection schemes play key roles in determining the sensitivity and specificity of these tests
+
+\begin{table}[ht]
+\centering
+\caption{Examples of diagnostic tests that depend on quantum coherence or quantum correlations.}
+\label{tab:diagnostic-tests}
+\begin{tabular}{p{3.5cm} p{4.2cm} p{6.5cm}}
+\toprule
+\textbf{Diagnostic Test} & \textbf{Quantum Phenomena} & \textbf{Why It Is Quantum} \\
+\midrule
+
+MRI & Proton spin superposition, spin coherence (T$_2$, T$_2^*$) & 
+Signal originates from coherent transverse magnetization; tissue-dependent decoherence provides diagnostic contrast. \\[0.75em]
+
+NMR Spectroscopy & Nuclear spin coherence, J-coupling & 
+Metabolic and molecular signatures arise from quantum transition frequencies and coherence lifetimes. \\[0.75em]
+
+Optical Coherence Tomography (OCT) & Optical coherence, interference of photon wavefields & 
+Depth-resolved imaging relies on phase-coherent interference between sample and reference arms. \\[0.75em]
+
+Coherent Anti-Stokes Raman Spectroscopy (CARS) &
+Molecular vibrational coherence & 
+Nonlinear anti-Stokes signal is generated only when a coherent vibrational wavepacket is driven and detected. \\[0.75em]
+
+NV-Center Diamond Magnetometry &
+Electron spin qubits in diamond &
+Magnetometry sensitivity is set by electron-spin coherence times and phase-accumulating pulse sequences. \\[0.75em]
+
+Interferometric Biosensors &
+Phase-coherent light, interference &
+Binding events or refractive index changes are detected via phase shifts in coherent interferometric fringes. \\[0.75em]
+
+Quantum-Enhanced or Entanglement-Assisted Imaging (e.g., quantum illumination) &
+Entangled or correlated photon pairs &
+Joint detection of signal--idler photons enables enhanced sensitivity in noisy environments. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{One Test, One Population Latent Class Model with Quantum Coherence}
+
+We consider a single binary diagnostic test applied in one population.  
+The latent disease status is classical; the quantum structure enters only through the measurement model for the test.
+
+\subsection{Latent class}
+
+Let
+\begin{itemize}
+    \item \(Z_i \in \{0,1\}\) denote the (unobserved) disease status for subject \(i=1,\dots,N\),
+    \item \(Z_i = 1\) indicate disease and \(Z_i = 0\) indicate no disease.
+\end{itemize}
+
+We assume a single population prevalence
+\[
+Z_i \sim \mathrm{Bernoulli}(\pi), 
+\qquad 0 < \pi < 1.
+\]
+
+\subsection{Quantum-inspired measurement model}
+
+The diagnostic test produces a binary outcome \(T_i \in \{0,1\}\), where \(T_i=1\) denotes a positive test.
+
+Classically, the test is characterized by its sensitivity and specificity,
+\[
+\mathrm{Se} = P(T=1 \mid Z=1), \qquad
+\mathrm{Sp} = P(T=0 \mid Z=0).
+\]
+
+In the quantum-inspired formulation, we represent the effective ensemble state entering the measurement as a \(2\times2\) density matrix in the \(\{|0\rangle, |1\rangle\}\) basis corresponding to \(Z=0\) and \(Z=1\):
+\[
+\rho =
+\begin{pmatrix}
+1-\pi & c \\
+c^*   & \pi
+\end{pmatrix},
+\qquad
+c = \kappa\sqrt{\pi(1-\pi)}, 
+\quad |\kappa|\le 1,
+\]
+where \(\kappa\) is a dimensionless “coherence” parameter describing the degree to which the probe–sample interaction retains phase-coherent structure.  
+The diagonal elements remain the classical prevalences.
+
+The test is described by a two-outcome POVM \(\{E_+, E_-\}\) acting on the same space, with
+\[
+E_+ =
+\begin{pmatrix}
+1-\mathrm{Sp} & \gamma \\
+\gamma        & \mathrm{Se}
+\end{pmatrix},
+\qquad
+E_- = I - E_+.
+\]
+Here, \(E_+\) corresponds to the positive test event.  
+The off-diagonal element \(\gamma\) encodes sensitivity of the measurement to coherence.
+
+Positivity of \(E_+\) requires
+\[
+(1-\mathrm{Sp})\,\mathrm{Se} - \gamma^2 \ge 0
+\quad\Longrightarrow\quad
+|\gamma| \le \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}}.
+\]
+
+Given \(\rho\) and \(E_+\), the marginal probability of a positive test is
+\begin{align*}
+p_+
+&= P(T=1 \mid \pi,\mathrm{Se},\mathrm{Sp},\kappa,\gamma) \\
+&= \operatorname{Tr}(E_+ \rho) \\
+&= (1-\mathrm{Sp})(1-\pi)
+  + \mathrm{Se}\,\pi
+  + 2\gamma \kappa \sqrt{\pi(1-\pi)}.
+\end{align*}
+
+When \(\kappa = 0\) or \(\gamma = 0\), the coherence term vanishes:
+\[
+p_+ = (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi,
+\]
+which is exactly the classical one-test latent class model.
+
+\subsection{Likelihood}
+
+Let \(y\) denote the number of positive results in a sample of size \(N\).  
+Under the model,
+\[
+y \mid N, p_+ \sim \mathrm{Binomial}(N, p_+),
+\]
+with
+\[
+p_+ = (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi
++ 2\gamma \kappa \sqrt{\pi(1-\pi)}.
+\]
+
+This likelihood reduces to the classical latent class likelihood when the coherence term  
+\(2\gamma\kappa\sqrt{\pi(1-\pi)}\) is constrained to zero.
+
+
+\section{Discussion}
+
+\subsection*{Interpretation of \texorpdfstring{$\kappa$}{kappa}, \texorpdfstring{$\gamma$}{gamma}, and the Role of Entanglement}
+
+In the quantum-inspired single-test model, the parameter $\kappa$ represents the
+effective coherence of the probe--sample ensemble.  In physical modalities such
+as MRI, $\kappa$ is analogous to a dimensionless measure of transverse
+magnetization and encodes the degree to which spin coherence (e.g.\ T$_2$ or
+T$_2^*$) survives until readout.  In optical systems such as OCT or
+interferometric biosensors, $\kappa$ reflects the residual optical coherence
+after propagation and scattering through tissue.  In vibrational spectroscopy
+methods such as CARS, $\kappa$ corresponds to the magnitude of the induced
+molecular vibrational coherence, while in NV-center diamond magnetometry it is
+associated with electron-spin coherence times.  Across these modalities,
+$|\kappa|$ therefore quantifies the coherence structure present in the
+probe--sample state prior to measurement.
+
+The parameter $\gamma$ encodes the coherence sensitivity of the diagnostic
+device.  In MRI, $\gamma$ is determined by the pulse sequence and receiver
+design, which may either emphasize or deliberately average over phase
+information.  In OCT and other interferometric sensors, $\gamma$ reflects fringe
+visibility and phase stability in the interferometer.  In CARS and NV
+magnetometry, $\gamma$ captures the degree to which the detection process is
+phase sensitive (e.g.\ phase matching, echo sequences, or Ramsey-style
+measurements).  Setting $\gamma = 0$ reduces the measurement operator to a
+classical sensitivity/specificity model in which off-diagonal coherence does not
+contribute to the test outcome.
+
+Entanglement-based diagnostic schemes extend this single-system framework by
+using joint probe states $\rho_{SI}$ defined on
+$\mathcal{H}_S \otimes \mathcal{H}_I$.  Examples include quantum illumination,
+entanglement-assisted OCT, and correlation-based imaging modalities.  In such
+systems, diagnostic information is carried not only in local coherence
+(i.e.\ the $\kappa$-like structure of the marginal states) but also in
+nonclassical correlations between the signal and idler modes.  These
+correlations appear as off-diagonal structure in the joint density matrix and
+cannot be captured by a single $(\kappa,\gamma)$ pair.  Joint POVMs acting on
+the bipartite system can, in principle, yield enhanced sensitivity or
+signal-to-noise ratio in highly noisy biomedical environments, even when the
+entanglement is strongly degraded by loss.
+
+
+% ------------------------------------------------------------------
+% REFERENCES
+% ------------------------------------------------------------------
+% --- Bibliography Section ---
+
+% The parameter {9} tells LaTeX how much space to reserve for labels. 
+% Use {9} for single digits, {99} for double digits (10+ refs).
+\begin{thebibliography}{9}
+
+   \bibitem{helstrom1969quantum}
+    Carl W. Helstrom. 
+    Quantum detection and estimation theory.
+    \textit{Journal of Statistical Physics} 1(2) (1969): 231-252.
+
+    \bibitem{malley1993quantum}
+    James D. Malley and John Hornstein. 
+    Quantum statistical inference. 
+    \textit{Statistical Science}, pages 433--457, 1993.
+  
+    \bibitem{einstein1905}
+    Albert Einstein. 
+    \textit{Zur Elektrodynamik bewegter K{\"o}rper}. (German) 
+    [\textit{On the electrodynamics of moving bodies}]. 
+    Annalen der Physik, 322(10):891–921, 1905.
+
+    \bibitem{knuth84}
+    Donald E. Knuth. 
+    \textit{The TeXbook}. 
+    Addison-Wesley, Reading, Massachusetts, 1984.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,166 @@
+# =========================================================
+# R / RStudio
+# =========================================================
+.Rhistory
+.RData
+.Ruserdata
+
+# RStudio project files
+.Rproj.user/
+*.Rproj
+
+# R build & package artifacts
+.Rbuildignore
+.Rcheck/
+*.tar.gz
+*.RData
+*.rds
+*.Rda
+
+# R session and cache
+.Rapp.history
+.Rapp/
+.Rcache/
+.Rproj.user/shared/notebooks/
+.Rproj.user/shared/notebooks/paths
+
+# renv (R dependency management)
+renv/library/
+renv/staging/
+renv/python/
+renv.lock
+__pycache__/
+
+# targets / drake / workflowr / cache
+_targets/
+_cache/
+.cache/
+
+# Packrat (legacy)
+packrat/lib*/
+packrat/src/
+
+# knitr / markdown intermediates
+*.utf8.md
+*.knit.md
+*.nb.html
+*.log
+
+# Quarto and R Markdown outputs
+*_files/
+*_cache/
+*.html
+*.pdf
+*.docx
+
+# =========================================================
+# Python / reticulate
+# =========================================================
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# reticulate-specific environments
+.r-reticulate/
+r-reticulate/
+~/.virtualenvs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# =========================================================
+# Jupyter / Quarto hybrid
+# =========================================================
+# Jupyter notebook checkpoints & metadata
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+*.ipynb.meta
+*.ipynb_profiling/
+.jupyter/
+
+# Quarto-generated files
+_site/
+docs/
+public/
+.quarto/
+_quarto.yaml
+*_cache/
+*.qmd~
+*.Rmd~
+*.ipynb~
+
+# Quarto notebook intermediates
+*_files/
+*.nb.html
+
+# =========================================================
+# OS / Editor / Misc
+# =========================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code / JetBrains IDEs
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+*~
+*.bak
+*.swp
+
+# LaTeX intermediate and output files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# PDF and other compiled outputs
+*.pdf
+*.dvi
+*.ps
+
+# Temporary files
+*.nav
+*.snm
+*.vrb
+
+# Backup files
+*~
+*.bak
+*.tmp
+
+# Editors
+*.swp
+*.swo
+
