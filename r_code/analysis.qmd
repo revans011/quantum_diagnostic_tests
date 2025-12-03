@@ -278,3 +278,218 @@ invisible(lapply(pkgs, print_pkg_info))
 
 
 **End of Document**
+
+Short answer: γ is constrained correctly; κ is physically fine but you’re implicitly restricting it to be nonnegative. That’s OK if you don’t care about its sign (which you usually don’t), but it’s good to be explicit about what you mean.
+
+Let me break it down parameter by parameter.
+
+⸻
+
+1. κ (state coherence)
+
+From the density matrix constraint,
+
+\rho =
+\begin{pmatrix}
+1-\pi & c \\
+c^* & \pi
+\end{pmatrix},
+\qquad
+c = \kappa \sqrt{\pi(1-\pi)},
+
+positivity requires
+
+|c|^2 \le \pi(1-\pi)
+\quad\Longrightarrow\quad
+|\kappa| \le 1.
+
+So the only hard constraint is
+
+\kappa \in [-1,1].
+
+In the Stan/R code I wrote, I used:
+
+real<lower=0,upper=1> kappa;
+kappa ~ beta(a_kappa, b_kappa);
+
+So:
+	•	This respects the physical constraint (you’re in [0,1]\subset[-1,1]).
+	•	It implicitly assumes nonnegative coherence amplitude.
+	•	The sign of c can always be absorbed into a phase if you later decide to go fully complex; so restricting κ ≥ 0 is not a physical violation, just a modeling choice.
+
+If you want full generality:
+	•	Let \kappa \in [-1,1] and put, say, a truncated Normal or uniform on that interval, or
+	•	Keep \kappa \in [0,1] as a magnitude and carry a separate phase parameter for the sign.
+
+For the current real-valued, phase-stripped model, κ ∈ [0,1] with a Beta prior is perfectly valid and safely constrained.
+
+⸻
+
+2. γ (measurement coherence)
+
+The POVM element
+
+E_+ =
+\begin{pmatrix}
+1-\mathrm{Sp} & \gamma \\
+\gamma        & \mathrm{Se}
+\end{pmatrix}
+
+must be positive semidefinite, which gives:
+
+\gamma^2 \le (1-\mathrm{Sp})\,\mathrm{Se}.
+
+So the allowed range for γ depends on Se and Sp.
+If you just did \gamma \sim \text{Uniform}(-1,1), you’d often violate this.
+
+In the Stan code, I enforced:
+
+real<lower=-1,upper=1> eta;
+gamma = eta * sqrt( (1 - Sp) * Se );
+
+This implies
+
+|\gamma| = |\eta| \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}}
+\le \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}},
+
+because |\eta|\le 1. So:
+	•	The positivity constraint on E_+ is automatically satisfied.
+	•	The prior on γ is induced via a prior on η:
+
+eta ~ uniform(-1, 1);  // or truncated Normal around 0
+
+
+
+This is exactly the correct way to constrain γ:
+you put the prior on η \in[-1,1], not directly on γ.
+
+⸻
+
+3. Does this also guarantee 0 \le p_+ \le 1?
+
+Yes. Under:
+	•	\pi,\mathrm{Se},\mathrm{Sp} \in [0,1],
+	•	|\kappa|\le 1,
+	•	|\gamma| \le \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}},
+
+you’re guaranteed that:
+	•	\rho is a valid density matrix,
+	•	0 \preceq E_+ \preceq I,
+
+and therefore
+
+p_+ = \mathrm{Tr}(E_+\rho) \in [0,1].
+
+So the constraints you’ve used do keep you in the physically/ probabilistically valid region.
+
+⸻
+
+4. If you want to be extra explicit in the writeup
+
+You can safely say:
+	•	κ:
+“We restrict 0 \le \kappa \le 1, interpreting κ as a nonnegative coherence magnitude; the sign can be absorbed into an implicit phase.”
+	•	γ:
+“We parameterize \gamma = \eta\sqrt{(1-\mathrm{Sp})\,\mathrm{Se}} with \eta \in [-1,1], which guarantees that the POVM element E_+ remains positive semidefinite for all Se, Sp in (0,1).”
+
+So: yes, the priors are constrained properly for physical validity; κ is additionally restricted to be nonnegative by design, which is a modeling choice rather than a violation.
+
+```{r}
+stan_code <- '
+data {
+  int<lower=0> N;          // number of subjects
+  int<lower=0, upper=N> y; // number of positive tests
+
+  // hyperparameters for Beta priors
+  real<lower=0> a_pi;
+  real<lower=0> b_pi;
+  real<lower=0> a_Se;
+  real<lower=0> b_Se;
+  real<lower=0> a_Sp;
+  real<lower=0> b_Sp;
+  real<lower=0> a_kappa;
+  real<lower=0> b_kappa;
+}
+
+parameters {
+  real<lower=0,upper=1> pi;     // prevalence
+  real<lower=0,upper=1> Se;     // sensitivity
+  real<lower=0,upper=1> Sp;     // specificity
+  real<lower=0,upper=1> kappa;  // state coherence
+  real<lower=-1,upper=1> eta;   // scaled measurement coherence
+}
+
+transformed parameters {
+  real gamma;  // measurement coherence parameter
+  real p_pos;  // P(T = 1)
+
+  // enforce |gamma| <= sqrt((1-Sp)*Se)
+  gamma = eta * sqrt( (1 - Sp) * Se );
+
+  // quantum-inspired probability of positive test
+  p_pos = (1 - Sp) * (1 - pi)
+          + Se * pi
+          + 2 * gamma * kappa * sqrt( pi * (1 - pi) );
+}
+
+model {
+  // priors
+  pi    ~ beta(a_pi,    b_pi);
+  Se    ~ beta(a_Se,    b_Se);
+  Sp    ~ beta(a_Sp,    b_Sp);
+  kappa ~ beta(a_kappa, b_kappa);
+  eta   ~ uniform(-1, 1);   // shrinkage priors could be used instead
+
+  // likelihood
+  y ~ binomial(N, p_pos);
+}
+'
+
+```
+
+
+```{r}
+writeLines(stan_code, con = "quantum_one_test.stan")
+```
+
+
+```{r}
+# install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(cmdstanr)
+
+# make sure cmdstan is installed once:
+# cmdstanr::install_cmdstan()
+
+# Compile the Stan model
+mod <- cmdstan_model("quantum_one_test.stan")
+
+# Example data
+N <- 200
+y <- 47
+
+# Prior hyperparameters (adjust to taste)
+stan_data <- list(
+  N       = N,
+  y       = y,
+  a_pi    = 1, b_pi    = 1,   # flat prior on pi
+  a_Se    = 2, b_Se    = 2,   # mild prior on Se
+  a_Sp    = 2, b_Sp    = 2,   # mild prior on Sp
+  a_kappa = 1, b_kappa = 1    # flat prior on kappa
+)
+
+# Run HMC NUTS
+fit <- mod$sample(
+  data       = stan_data,
+  seed       = 1234,
+  chains     = 4,
+  parallel_chains = 4,
+  iter_warmup = 2000,
+  iter_sampling = 2000,
+  adapt_delta = 0.9   # NUTS tuning parameter
+)
+
+# Print summary for key parameters
+fit$summary(variables = c("pi", "Se", "Sp", "kappa", "gamma"))
+
+```
+

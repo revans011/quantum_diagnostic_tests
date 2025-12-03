@@ -415,6 +415,105 @@ Assume independent priors,
 \mathrm{Sp} \sim \mathrm{Beta}(a_{\mathrm{Sp}}, b_{\mathrm{Sp}}).
 \]
 
+%------------------------------------------------------------------
+
+
+\subsection{Example diagnostic test and proposed priors}
+
+To illustrate reasonable prior choices for the classical and
+quantum-inspired parameters \((\pi, \mathrm{Se}, \mathrm{Sp}, \kappa,
+\gamma)\), we consider a concrete medical imaging example: a binary
+diagnostic decision based on diffusion-weighted MRI (DWI) with ADC
+thresholding for detecting clinically significant prostate cancer in a
+referred cohort.  This modality provides high sensitivity but only
+moderate specificity in practice, and originates from coherent transverse
+spin magnetization, making it a natural example for a model that allows
+for limited coherence effects.
+
+\paragraph{Prevalence.}
+For men referred for prostate MRI because of elevated PSA or clinical
+suspicion, the prevalence of clinically significant cancer typically lies
+between 20--40\%.  
+A prior centered at 30\% with moderate concentration is appropriate:
+\[
+\pi \sim \mathrm{Beta}(9,\,21),
+\]
+which yields a prior mean of \(0.30\) and a 95\% prior interval
+approximately spanning \([0.15, 0.50]\).  
+This reflects substantial uncertainty while excluding implausible extreme
+values.
+
+\paragraph{Sensitivity.}
+DWI is known to have high sensitivity for clinically significant lesions.
+We therefore adopt a prior that strongly favors decent sensitivity
+without forcing it to be near one:
+\[
+\mathrm{Se} \sim \mathrm{Beta}(18,\,3),
+\]
+with mean \(0.86\) and most mass between roughly \(0.70\) and \(0.97\).
+This encodes the expectation that truly significant tumors are usually
+detectable on DWI, while allowing for realistic uncertainty.
+
+\paragraph{Specificity.}
+False positives arise from prostatitis, benign nodules, and susceptibility
+artifacts, so specificity is typically moderate in a referred cohort.
+A suitable prior is
+\[
+\mathrm{Sp} \sim \mathrm{Beta}(12,\,8),
+\]
+with prior mean \(0.60\) and a 95\% mass approximately in
+\([0.40, 0.80]\).  
+This expresses the belief that specificity is unlikely to be very low or
+very high.
+
+\paragraph{State coherence.}
+The parameter \(\kappa\) quantifies the amount of residual coherence in
+the effective ensemble state.  
+Although the underlying MR signal is produced by coherent transverse
+magnetization, diffusion weighting, $T_2$ decay, microstructural
+heterogeneity, and motion introduce substantial dephasing, and the
+clinical decision is made on magnitude images, not phase-sensitive data.
+Residual coherence should therefore be small but not forced to zero.  We
+use the prior
+\[
+\kappa \sim \mathrm{Beta}(2,\,6),
+\]
+which has mean \(0.25\) and places most probability below $0.6$.  
+This prior favors near-classical behavior while permitting modest
+coherence if strongly supported by the data.
+
+\paragraph{Measurement coherence sensitivity.}
+The parameter \(\gamma\) reflects the degree to which the measurement
+operator is sensitive to coherence.  
+To ensure physical admissibility, we write
+\[
+\gamma = \eta\,\sqrt{(1-\mathrm{Sp})\,\mathrm{Se}},
+\qquad \eta \in [-1,\,1].
+\]
+Because ADC-based DWI reporting is typically based on magnitude and
+thresholding rather than phase-sensitive reconstruction, we expect
+coherence sensitivity to be small.  
+We therefore place a shrinkage prior on \(\eta\):
+\[
+\eta \sim \mathrm{Normal}(0,\,0.3)\;\mathrm{T}[-1,\,1],
+\]
+which concentrates most mass near zero but allows $\gamma$ to deviate
+meaningfully from zero if the data justify it.  
+
+\paragraph{Summary.}
+These priors represent a synthesis of clinical expectations (for $\pi$,
+$\mathrm{Se}$, and $\mathrm{Sp}$) and physical reasoning (for $\kappa$
+and $\gamma$).  
+They ensure that all quantum-inspired parameters remain within the
+physically valid region while preserving compatibility with the
+classical diagnostic test model when the data favor negligible coherence
+effects.
+
+
+
+
+%------------------------------------------------------------------
+
 \subsubsection*{Posterior distribution}
 
 By Bayes’ rule, the posterior density is
