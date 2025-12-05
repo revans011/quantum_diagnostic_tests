@@ -1,0 +1,899 @@
+\documentclass[11pt]{article}
+
+% ------------------------------------------------------------------
+% PACKAGES (all TinyTeX + arXiv safe)
+% ------------------------------------------------------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs} 
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% ------------------------------------------------------------------
+% TITLE / AUTHORS
+% ------------------------------------------------------------------
+\title{Estimating Prevalence using Quantum Statistics}
+
+\author{
+Richard Evans\\
+\small Clinical and Translational Science Institue, University of Minnesota\\
+\small \texttt{evan0770@umn.edu}
+}
+
+\date{December 1, 2015}
+
+% ------------------------------------------------------------------
+% DOCUMENT
+% ------------------------------------------------------------------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Prevalence estimates obtained from imperfect diagnostic or screening tests are biased by a function of the tests' sensitivity, specificity, and the prevalence of the disease in the population. However, diagnostic tests based on quantum coherence phenomena, such as magnetic resonance imaging (MRI) or optical coherence tomography (OCT), may retain phase information that can be exploited to improve prevalence estimation. In this paper, we develop a quantum-inspired statistical framework for estimating disease prevalence from such a binary binary diagnostic test by incorporating the effects of quantum coherence and measurement sensitivity. We derive the likelihood function for a single binary diagnostic test applied to a single population, and we propose Bayesian priors for the model parameters based on clinical and physical considerations. We discuss the identifiability of the model parameters and provide an interpretation of the coherence parameters in terms of a two-slit interference analogy. This framework provides a principled approach to incorporating quantum effects into diagnostic test modeling and may lead to improved prevalence estimates in settings where quantum coherence plays a significant role.
+
+\end{abstract}
+
+% ------------------------------------------------------------------
+% MAIN TEXT
+% ------------------------------------------------------------------
+
+\section{Introduction}
+
+Quantum statistical inference was develeped beginning in the late 1960's. Early quantum statistical inference was developed in the context of information, and comparing quantum, Bayesian and frequentist decision making along the lines of DeGroot. In particular, Helstrom \cite{helstrom1969quantum} developed the theory of quantum detection and estimation theory, which provides a framework for optimal decision making in the presence of quantum states and measurements. Malley and Hornstein \cite{malley1993quantum} further extended these ideas to develop a quantum statistical inference framework that incorporates Bayesian principles. More recently, with access to quantum computers, quantum statistical inference has been applied to a variety of fields, including quantum computing, (XXXguyfrom madison and the principle components paper) quantum cryptography, and quantum machine learning. 
+
+While quantum statistical inference has been widely studied in physics, information theory, and computation, its application to prevalence estimation has been unexplored. Here, we are not using quantum computing to increase the speed of prevalence estimation, but rather we are using quantum statistics to model the diagnostic test itself. Many diagnostic tests, such as MRI, OCT, and NMR spectroscopy, rely on quantum coherence phenomena to generate diagnostic information. By incorporating these quantum effects into the statistical model for prevalence estimation, we can potentially improve the accuracy of prevalence estimates obtained from such tests.
+
+Our approach follows the 2011 article textit{Estimating Prevalence Uisng an Imperfect Test} by Prof. Peter Diggle, who reframed the "one test, one population" problem of prevalence estimation using imperfect diagnostic tests into one of bias estimation in a Bayesian framework. We extend this framework to incorporate a quantum coherence term by representing the diagnostic test as a quantum measurement acting on a density matrix that encodes the disease status and coherence properties of the sample. This allows us to derive a likelihood function that accounts for both classical test characteristics (sensitivity and specificity) and quantum coherence parameters. Once the likelihood is derived, we propose Bayesian priors for the model parameters based on clinical and physical considerations. 
+
+The first section of this paper reviews the quantum Bayesian update procedure for a single binary diagnostic test, demonstrating how it reduces to classical Bayes when no coherence is introduced. The second section develops the full quantum-inspired model for a single binary diagnostic test applied to a single population, deriving the likelihood function and proposing priors for the model parameters. We discuss the identifiability of the model parameters and provide an interpretation of the coherence parameters in terms of a two-slit interference analogy. Finally, we conclude with a discussion of the implications of this framework for prevalence estimation and potential avenues for future research.
+
+
+
+\section{Quantum prevalence estimation}
+
+
+Let
+\[
+D \in \{0,1\}
+\]
+denote the latent disease state (with \(D=1\) indicating disease and
+\(D=0\) indicating no disease), and let
+\[
+T \in \{0,1\}
+\]
+be the diagnostic test result (with \(T=1\) indicating a positive test).
+
+The classical quantities are:
+
+\begin{align*}
+\pi &= P(D=1),     & P(D=0) &= 1-\pi, \\
+\mathrm{Se} &= P(T=1 \mid D=1), &
+\mathrm{Sp} &= P(T=0 \mid D=0).
+\end{align*}
+
+For a positive test, classical Bayes gives
+\[
+P(D=1 \mid T=1)
+= 
+\frac{\mathrm{Se}\,\pi}
+     {\mathrm{Se}\,\pi + (1-\mathrm{Sp})(1-\pi)}.
+\]
+The analogous expression holds for \(T=0\).
+
+\subsubsection*{2. Embedding the latent class in a Hilbert space}
+
+To express the model in quantum form, embed the latent variable in a
+two-dimensional Hilbert space \(\mathcal{H}_D\) with orthonormal basis
+\(\{|0\rangle_D, |1\rangle_D\}\) corresponding to \(D=0\) and
+\(D=1\).
+
+The prior distribution becomes a density matrix.  
+If no coherence is introduced, it is diagonal:
+\[
+\rho_D
+=
+\begin{pmatrix}
+1-\pi & 0 \\
+0     & \pi
+\end{pmatrix},
+\]
+which is exactly the classical prior written in quantum notation.
+
+(If one later wishes to introduce coherence, one may write
+\(
+\rho_D =
+\begin{pmatrix}
+1-\pi & c \\
+c^*   & \pi
+\end{pmatrix}
+\)
+with \(|c|^2 \le \pi(1-\pi)\); here we keep \(c=0\).)
+
+\subsubsection*{Encoding the diagnostic test as measurement operators}
+
+A measurement with two outcomes \(t\in\{0,1\}\) is represented by two
+operators \(M_t\) satisfying the completeness relation
+\[
+\sum_{t=0}^1 M_t^\dagger M_t = I.
+\]
+
+We choose operators whose Born-rule probabilities reproduce the classical
+error rates.  Working in the \(D\)-basis, the simplest diagonal choice is
+
+\[
+M_1
+=
+\begin{pmatrix}
+\sqrt{1-\mathrm{Sp}} & 0 \\
+0                   & \sqrt{\mathrm{Se}}
+\end{pmatrix},
+\qquad
+M_0
+=
+\begin{pmatrix}
+\sqrt{\mathrm{Sp}}   & 0 \\
+0                   & \sqrt{1-\mathrm{Se}}
+\end{pmatrix}.
+\]
+
+These satisfy \(M_0^\dagger M_0 + M_1^\dagger M_1 = I\) and encode
+\[
+P(T=1 \mid D=0)=1-\mathrm{Sp}, \qquad
+P(T=1 \mid D=1)=\mathrm{Se},
+\]
+\[
+P(T=0 \mid D=0)=\mathrm{Sp}, \qquad
+P(T=0 \mid D=1)=1-\mathrm{Se}.
+\]
+
+\subsubsection*{4. Quantum Bayesian update (Lüders rule)}
+
+Given a prior \(\rho_D\) and a measurement outcome \(T=t\), the
+unnormalized post-measurement state is
+\[
+\tilde{\rho}_D(t) = M_t \, \rho_D \, M_t^\dagger.
+\]
+Its trace gives the marginal probability of outcome \(t\):
+\[
+P(T=t) = \operatorname{Tr}\bigl(\tilde{\rho}_D(t)\bigr).
+\]
+which is precisely Prof. Diggle's equation 2. We have therefore reproduced the biased estimate of prevalance from an imperfect diagnostic test in the discoherent state. The normalized posterior state is
+\[
+\rho_D'(t)
+=
+\frac{\tilde{\rho}_D(t)}
+     {\operatorname{Tr}\bigl(\tilde{\rho}_D(t)\bigr)}.
+\]
+
+Because \(\rho_D\), \(M_0\), and \(M_1\) are diagonal, this update
+reduces exactly to classical Bayes.  
+For example, with
+\[
+\rho_D =
+\begin{pmatrix}
+1-\pi & 0 \\
+0     & \pi
+\end{pmatrix},
+\quad
+M_1 =
+\begin{pmatrix}
+\sqrt{1-\mathrm{Sp}} & 0 \\
+0                   & \sqrt{\mathrm{Se}}
+\end{pmatrix},
+\]
+we have
+\[
+\tilde{\rho}_D(1)
+=
+M_1 \rho_D M_1^\dagger
+=
+\begin{pmatrix}
+(1-\mathrm{Sp})(1-\pi) & 0 \\
+0 & \mathrm{Se}\,\pi
+\end{pmatrix}.
+\]
+
+The trace is
+\[
+P(T=1)
+= (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi.
+\]
+Hence the posterior is
+\[
+\rho_D'(1)
+=
+\frac{1}{P(T=1)}
+\begin{pmatrix}
+(1-\mathrm{Sp})(1-\pi) & 0 \\
+0 & \mathrm{Se}\,\pi
+\end{pmatrix}.
+\]
+
+Thus,
+\[
+P(D=0\mid T=1)
+= \frac{(1-\mathrm{Sp})(1-\pi)}{P(T=1)},
+\qquad
+P(D=1\mid T=1)
+= \frac{\mathrm{Se}\,\pi}{P(T=1)},
+\]
+which are exactly the classical posterior probabilities.
+
+The same calculation applies to \(T=0\) using \(M_0\).  
+Therefore the quantum formulation reproduces classical Bayes in the
+absence of coherence while providing a framework into which coherence can
+be added in a principled way.
+
+\section{One Test, One Population with Quantum Coherence}
+
+With the notation out of the way, and the classical formulas reproduced using quantum mechanics notation, we consider a single binary diagnostic test applied to one population.  
+The latent disease status is classical; the quantum structure enters only through the measurement model for the test.
+
+% ------------------------------------------------------------------
+
+\subsection{Disease status}
+
+Let
+\begin{itemize}
+    \item \(D_i \in \{0,1\}\) denote the (unobserved) disease status for subject \(i=1,\dots,N\),
+    \item \(D_i = 1\) indicate the presence of disease, and \(D_i = 0\) indicate no disease.
+\end{itemize}
+
+We assume a single population prevalence
+\[
+D_i \sim \mathrm{Bernoulli}(\pi), 
+\qquad 0 < \pi < 1.
+\]
+
+% ------------------------------------------------------------------
+
+\subsection{Quantum-inspired measurement model}
+
+The diagnostic test yields a binary outcome \(T_i \in \{0,1\}\), where \(T_i = 1\) denotes a positive result.  
+Classically, the test characteristics are defined by
+\[
+\mathrm{Se} = P(T=1 \mid D=1), 
+\qquad
+\mathrm{Sp} = P(T=0 \mid D=0).
+\]
+
+In the quantum-inspired representation, the effective ensemble state entering the diagnostic device is expressed as a \(2\times 2\) density matrix in the \(\{|0\rangle, |1\rangle\}\) basis corresponding to \(D=0\) and \(D=1\):
+\[
+\rho =
+\begin{pmatrix}
+1-\pi & c \\
+c^*   & \pi
+\end{pmatrix},
+\qquad
+c = \kappa \sqrt{\pi(1-\pi)}, 
+\quad |\kappa| \le 1.
+\]
+The diagonal entries coincide with the classical prevalences, while the off-diagonal element \(c\) encodes the degree of phase coherence retained in the probe--sample interaction through a dimensionless parameter \(\kappa\).
+
+The diagnostic test is modeled by a two-outcome POVM \(\{E_+, E_-\}\), with
+\[
+E_+ =
+\begin{pmatrix}
+1-\mathrm{Sp} & \gamma \\
+\gamma        & \mathrm{Se}
+\end{pmatrix},
+\qquad
+E_- = I - E_+.
+\]
+Here, \(E_+\) corresponds to a positive test event.  
+The parameter \(\gamma\) represents the measurement’s sensitivity to coherence.  
+Positivity of \(E_+\) requires
+\[
+(1-\mathrm{Sp})\,\mathrm{Se} - \gamma^2 \ge 0
+\quad\Longrightarrow\quad
+|\gamma| \le \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}}.
+\]
+
+Given \(\rho\) and \(E_+\), the probability of a positive result is
+\begin{align*}
+p_+ 
+&= P(T=1 \mid \pi,\mathrm{Se},\mathrm{Sp},\kappa,\gamma) \\
+&= \operatorname{Tr}(E_+ \rho) \\
+&= (1-\mathrm{Sp})(1-\pi)
+  + \mathrm{Se}\,\pi
+  + 2\gamma\,\kappa\,\sqrt{\pi(1-\pi)}.
+\end{align*}
+
+If either \(\kappa = 0\) (no coherence in the state) or \(\gamma = 0\) (measurement insensitive to coherence), then
+\[
+p_+ = (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi,
+\]
+the classical expression for a single diagnostic test.
+
+\subsection{Likelihood}
+
+Let \(y\) denote the number of positive test results in a sample of size \(N\).  
+Under the model,
+\[
+y \mid N, p_+ \sim \mathrm{Binomial}(N, p_+),
+\]
+with
+\[
+p_+ = (1-\mathrm{Sp})(1-\pi)
+      + \mathrm{Se}\,\pi
+      + 2\gamma\,\kappa\,\sqrt{\pi(1-\pi)}.
+\]
+
+Note that $p_{+}$ is again Prof. Diggle's equation 2, but with an added coherence term. This we have, more or less, repoduced his model, but now with an added quantum coherence term.
+This likelihood reduces to the classical form whenever the coherence term  
+\(2\gamma\kappa\sqrt{\pi(1-\pi)}\) is fixed to zero.
+
+% ------------------------------------------------------------------
+
+
+
+\subsection{Example diagnostic test and proposed priors}
+
+To illustrate reasonable prior choices for the classical and
+quantum-inspired parameters \((\pi, \mathrm{Se}, \mathrm{Sp}, \kappa,
+\gamma)\), we consider a concrete medical imaging example: a binary
+diagnostic decision based on diffusion-weighted MRI (DWI) with ADC
+thresholding for detecting clinically significant prostate cancer in a
+referred cohort.  This modality provides high sensitivity but only
+moderate specificity in practice, and originates from coherent transverse
+spin magnetization, making it a natural example for a model that allows
+for limited coherence effects.
+
+\paragraph{Prevalence.}
+For men referred for prostate MRI because of elevated PSA or clinical
+suspicion, the prevalence of clinically significant cancer typically lies
+between 20--40\%.  
+A prior centered at 30\% with moderate concentration is appropriate:
+\[
+\pi \sim \mathrm{Beta}(9,\,21),
+\]
+which yields a prior mean of \(0.30\) and a 95\% prior interval
+approximately spanning \([0.15, 0.50]\).  
+This reflects substantial uncertainty while excluding implausible extreme
+values.
+
+\paragraph{Sensitivity.}
+DWI is known to have high sensitivity for clinically significant lesions.
+We therefore adopt a prior that strongly favors decent sensitivity
+without forcing it to be near one:
+\[
+\mathrm{Se} \sim \mathrm{Beta}(18,\,3),
+\]
+with mean \(0.86\) and most mass between roughly \(0.70\) and \(0.97\).
+This encodes the expectation that truly significant tumors are usually
+detectable on DWI, while allowing for realistic uncertainty.
+
+\paragraph{Specificity.}
+False positives arise from prostatitis, benign nodules, and susceptibility
+artifacts, so specificity is typically moderate in a referred cohort.
+A suitable prior is
+\[
+\mathrm{Sp} \sim \mathrm{Beta}(12,\,8),
+\]
+with prior mean \(0.60\) and a 95\% mass approximately in
+\([0.40, 0.80]\).  
+This expresses the belief that specificity is unlikely to be very low or
+very high.
+
+\paragraph{State coherence.}
+The parameter \(\kappa\) quantifies the amount of residual coherence in
+the effective ensemble state.  
+Although the underlying MR signal is produced by coherent transverse
+magnetization, diffusion weighting, $T_2$ decay, microstructural
+heterogeneity, and motion introduce substantial dephasing, and the
+clinical decision is made on magnitude images, not phase-sensitive data.
+Residual coherence should therefore be small but not forced to zero.  We
+use the prior
+\[
+\kappa \sim \mathrm{Beta}(2,\,6),
+\]
+which has mean \(0.25\) and places most probability below $0.6$.  
+This prior favors near-classical behavior while permitting modest
+coherence if strongly supported by the data.
+
+\paragraph{Measurement coherence sensitivity.}
+The parameter \(\gamma\) reflects the degree to which the measurement
+operator is sensitive to coherence.  
+To ensure physical admissibility, we write
+\[
+\gamma = \eta\,\sqrt{(1-\mathrm{Sp})\,\mathrm{Se}},
+\qquad \eta \in [-1,\,1].
+\]
+Because ADC-based DWI reporting is typically based on magnitude and
+thresholding rather than phase-sensitive reconstruction, we expect
+coherence sensitivity to be small.  
+We therefore place a shrinkage prior on \(\eta\):
+\[
+\eta \sim \mathrm{Normal}(0,\,0.3)\;\mathrm{T}[-1,\,1],
+\]
+which concentrates most mass near zero but allows $\gamma$ to deviate
+meaningfully from zero if the data justify it.  
+
+\paragraph{Summary.}
+These priors represent a synthesis of clinical expectations (for $\pi$,
+$\mathrm{Se}$, and $\mathrm{Sp}$) and physical reasoning (for $\kappa$
+and $\gamma$).  
+They ensure that all quantum-inspired parameters remain within the
+physically valid region while preserving compatibility with the
+classical diagnostic test model when the data favor negligible coherence
+effects.
+
+
+
+
+%------------------------------------------------------------------
+
+\subsubsection*{Posterior distribution}
+
+\subsection*{Conditional likelihood for $\pi$}
+
+Let the positive--test probability be
+\[
+p_+(\pi;\,\mathrm{Se},\mathrm{Sp},\gamma,\kappa)
+=
+(1-\mathrm{Sp})(1-\pi)
+\;+\;
+\mathrm{Se}\,\pi
+\;+\;
+2\,\gamma\kappa\sqrt{\pi(1-\pi)}.
+\]
+
+Given $N$ tests with $y$ positive results, the conditional likelihood of
+$\pi$ (treating $\mathrm{Se},\mathrm{Sp},\gamma,\kappa$ as fixed) is
+\[
+L(\pi \mid y, N, \mathrm{Se},\mathrm{Sp},\gamma,\kappa)
+=
+\binom{N}{y}\,
+\big[p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^y
+\big[1 - p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^{N-y}.
+\]
+
+Up to a multiplicative constant not depending on $\pi$, this can be
+written as
+\[
+L(\pi \mid y, N, \mathrm{Se},\mathrm{Sp},\gamma,\kappa)
+\propto
+\big[p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^y
+\big[1 - p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^{N-y}.
+\]
+
+\subsection*{Posterior for prevalence $\pi$ (prostate DWI example)}
+
+Recall the positive-test probability
+\[
+p_+(\pi;\,\mathrm{Se},\mathrm{Sp},\gamma,\kappa)
+=
+(1-\mathrm{Sp})(1-\pi)
+\;+\;
+\mathrm{Se}\,\pi
+\;+\;
+2\,\gamma\kappa\sqrt{\pi(1-\pi)}.
+\]
+
+Given $N$ tests with $y$ positive results, the conditional likelihood for
+$\pi$ (treating $\mathrm{Se},\mathrm{Sp},\gamma,\kappa$ as fixed) is
+\[
+L(\pi \mid y, N, \mathrm{Se},\mathrm{Sp},\gamma,\kappa)
+=
+\binom{N}{y}\,
+\big[p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^y
+\big[1 - p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^{N-y}.
+\]
+
+In the prostate DWI example, we place the prior
+\[
+\pi \sim \mathrm{Beta}(9,\,21),
+\quad
+p(\pi) \propto \pi^{9-1}(1-\pi)^{21-1}
+= \pi^{8}(1-\pi)^{20},
+\qquad 0<\pi<1.
+\]
+
+By Bayes’ rule, the (unnormalized) posterior density for $\pi$ is
+\[
+p(\pi \mid y, N, \mathrm{Se},\mathrm{Sp},\gamma,\kappa)
+\propto
+\big[p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^y
+\big[1 - p_+(\pi;\mathrm{Se},\mathrm{Sp},\gamma,\kappa)\big]^{N-y}
+\,
+\pi^{8}(1-\pi)^{20},
+\qquad 0<\pi<1.
+\]
+
+Because of the term $2\,\gamma\kappa\sqrt{\pi(1-\pi)}$ in $p_+(\pi)$,
+this posterior does not reduce to a conjugate Beta form and must be
+evaluated numerically (e.g., via grid approximation or MCMC).
+
+
+By Bayes’ rule, the posterior density is
+\[
+p(\pi, \mathrm{Se}, \mathrm{Sp} \mid y)
+\propto
+L(\pi, \mathrm{Se}, \mathrm{Sp} \mid y)\,
+\pi^{a_\pi-1}(1-\pi)^{b_\pi-1}\,
+\mathrm{Se}^{a_{\mathrm{Se}}-1}(1-\mathrm{Se})^{b_{\mathrm{Se}}-1}\,
+\mathrm{Sp}^{a_{\mathrm{Sp}}-1}(1-\mathrm{Sp})^{b_{\mathrm{Sp}}-1}.
+\]
+
+Because the model includes the coherence term  
+\(2\gamma\kappa\sqrt{\pi(1-\pi)}\), the joint posterior does not factorize
+and does not admit closed-form conjugate updates for \(\mathrm{Se}\) and \(\mathrm{Sp}\).  
+Posterior inference therefore requires numerical computation (e.g., Hamiltonian Monte Carlo).
+
+\subsubsection*{Posterior of prevalence given known Se and Sp}
+
+If the sensitivity and specificity are treated as known constants,
+the likelihood becomes a one-parameter function of \(\pi\):
+\[
+p_+(\pi)
+= (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi
+  + 2\gamma\kappa\sqrt{\pi(1-\pi)}.
+\]
+
+The posterior for \(\pi\) is then
+\[
+p(\pi \mid y, \mathrm{Se}, \mathrm{Sp})
+\propto
+p_+(\pi)^y \,[1 - p_+(\pi)]^{N-y}\,
+\pi^{a_\pi-1}(1-\pi)^{b_\pi-1},
+\]
+which reduces to the standard Beta--Binomial posterior when the coherence term  
+\(2\gamma\kappa\sqrt{\pi(1-\pi)}\) is zero.
+
+
+% ------------------------------------------------------------------
+
+\subsubsection*{Posterior of Se and Sp given known prevalence}
+
+If prevalence \(\pi\) is fixed externally, the likelihood becomes
+\[
+p_+(\mathrm{Se},\mathrm{Sp})
+= (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi
+  + 2\gamma\kappa\sqrt{\pi(1-\pi)}.
+\]
+
+The joint posterior for \(\mathrm{Se}\) and \(\mathrm{Sp}\) is
+\[
+p(\mathrm{Se}, \mathrm{Sp} \mid y, \pi)
+\propto
+p_+(\mathrm{Se},\mathrm{Sp})^y
+\,[1 - p_+(\mathrm{Se},\mathrm{Sp})]^{N-y}
+\,\mathrm{Se}^{a_{\mathrm{Se}}-1}(1-\mathrm{Se})^{b_{\mathrm{Se}}-1}
+\,\mathrm{Sp}^{a_{\mathrm{Sp}}-1}(1-\mathrm{Sp})^{b_{\mathrm{Sp}}-1},
+\]
+subject to the positivity constraint
+\[
+|\gamma| \le \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}}.
+\]
+
+In general, the posterior must be sampled numerically.
+
+\subsubsection*{Classical limit}
+
+When either \(\kappa = 0\) or \(\gamma = 0\), the model reduces to
+\[
+p_+ = (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi,
+\]
+and the posterior simplifies to the standard Bayesian formulation
+for a single diagnostic test with unknown prevalence.
+
+% ------------------------------------------------------------------
+
+\subsection{Identifiability: classical versus quantum-inspired models}
+
+For a single binary diagnostic test applied to a single population, the
+classical formulation assumes three unknown parameters:
+prevalence \(\pi\), sensitivity \(\mathrm{Se}\), and specificity
+\(\mathrm{Sp}\).  The observable data from \(N\) tests are summarized by
+the number of positive results \(y\), yielding a single empirical
+proportion \(\hat{p}_+ = y/N\).  The corresponding model-based
+probability of a positive test is
+\[
+p_+^{\text{classical}}
+= (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi.
+\]
+Thus, in the classical setting, a single degree of freedom in the data
+is used to constrain three unknowns.  Without additional information
+(e.g.\ known \(\pi\), known \(\mathrm{Se}\) from an external calibration,
+or multiple populations with differing prevalences), the triplet
+\((\pi,\mathrm{Se},\mathrm{Sp})\) is not identifiable.
+
+In the quantum-inspired model, the probability of a positive test is
+\[
+p_+
+= (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi
+  + 2\gamma \kappa \sqrt{\pi(1-\pi)}.
+\]
+In addition to \(\pi\), \(\mathrm{Se}\), and \(\mathrm{Sp}\), this model
+introduces the coherence magnitude \(\kappa\) and the
+measurement-coherence parameter \(\gamma\) (subject to the positivity
+constraint \(|\gamma| \le \sqrt{(1-\mathrm{Sp})\,\mathrm{Se}}\)).
+The data still provide only a single scalar constraint through \(y\) or
+\(\hat{p}_+\).  Consequently, the quantum-inspired formulation with
+\((\pi,\mathrm{Se},\mathrm{Sp},\kappa,\gamma)\) is even less identifiable
+than the classical model unless additional structure is imposed.
+
+Identifiability can be restored only by introducing further assumptions
+or information, such as: (i) fixing one or more parameters (e.g.\ known
+\(\pi\), or known \(\mathrm{Se}\) and \(\mathrm{Sp}\) from independent
+studies), (ii) constraining the parameters to lie on a lower-dimensional
+manifold (for example, expressing \(\mathrm{Se}\) and \(\mathrm{Sp}\) as
+functions of a single underlying physical parameter), or (iii) adding
+more data structure, such as multiple populations with different
+prevalences or additional diagnostic tests.  The use of quantum
+notation does not, by itself, resolve the identifiability problem; it
+provides a structured way to encode coherence effects and physical
+constraints when such information is available.
+
+\subsection{Priors for coherence parameters}
+
+The quantum-inspired model introduces two additional quantities beyond
+the classical parameters \(\pi\), \(\mathrm{Se}\), and \(\mathrm{Sp}\):
+\begin{itemize}
+    \item \(\kappa \in [-1,1]\), controlling coherence in the effective
+    ensemble state,
+    \item \(\gamma\), controlling the measurement’s sensitivity to coherence.
+\end{itemize}
+Both parameters are subject to positivity constraints arising from the
+requirement that the density matrix \(\rho\) and the POVM element
+\(E_+\) remain valid quantum states and measurements.
+
+
+% ------------------------------------------------------------------
+
+\subsubsection*{Prior for the state coherence parameter \(\kappa\)}
+
+The off-diagonal term in the ensemble state is
+\[
+c = \kappa \sqrt{\pi(1-\pi)}, \qquad |\kappa|\le 1,
+\]
+which ensures that the density matrix
+\(
+\rho = 
+    \begin{pmatrix}
+    1-\pi & c \\
+    c^*   & \pi
+    \end{pmatrix}
+\)
+is positive semidefinite.  
+Accordingly, \(\kappa\) may be assigned any prior supported on the
+interval \([-1,1]\).  
+Examples include a uniform prior,
+\[
+\kappa \sim \mathrm{Uniform}(-1,1),
+\]
+or a shrinkage prior that favors weak coherence, such as a truncated
+normal distribution,
+\[
+\kappa \sim \mathrm{Normal}(0,\sigma)\;\mathrm{T}[-1,1].
+\]
+
+\subsubsection*{Prior for the measurement coherence parameter \(\gamma\)}
+
+The positive-test POVM element
+\[
+E_+ =
+\begin{pmatrix}
+1-\mathrm{Sp} & \gamma \\
+\gamma        & \mathrm{Se}
+\end{pmatrix}
+\]
+must satisfy \(E_+ \succeq 0\), which imposes the constraint
+\[
+\gamma^2 \le (1-\mathrm{Sp})\,\mathrm{Se}.
+\]
+Because the admissible range of \(\gamma\) depends on
+\(\mathrm{Se}\) and \(\mathrm{Sp}\), it is convenient to introduce a
+dimensionless parameter
+\[
+\eta \in [-1,1], \qquad
+\gamma = \eta\,\sqrt{(1-\mathrm{Sp})\,\mathrm{Se}}.
+\]
+Any prior supported on \([-1,1]\) may then be placed on \(\eta\), which
+automatically induces a valid prior on \(\gamma\).  
+A natural choice is a uniform prior,
+\[
+\eta \sim \mathrm{Uniform}(-1,1),
+\]
+or a shrinkage prior centered at the classical limit \(\gamma = 0\),
+\[
+\eta \sim \mathrm{Normal}(0,\sigma)\;\mathrm{T}[-1,1].
+\]
+
+\subsubsection*{Interpretation}
+
+The parameter \(\kappa\) governs the extent to which the state entering
+the diagnostic device retains phase coherence, while \(\gamma\) (via
+\(\eta\)) determines how strongly the device responds to such coherence.
+By placing priors directly on \(\kappa\) and \(\eta\), the resulting
+model respects all positivity and physical admissibility constraints and
+reduces smoothly to the classical diagnostic test model when either
+parameter is constrained to zero.
+
+% ------------------------------------------------------------------
+\subsection{Two-slit ``split-screen'' analogy for diagnostic testing}
+
+The quantum-inspired diagnostic model may be understood through a
+two-path interference analogy, closely related to the classical
+double-slit or ``split-screen'' experiment in quantum physics.  
+In the double-slit setting, a particle arriving at a detection screen
+may reach any given location through two coherent paths (slit~A and
+slit~B).  Each path contributes a complex probability amplitude, and the
+observed distribution of detection locations depends on both (i) the
+individual path intensities and (ii) an interference term that arises
+only when the paths maintain a stable relative phase.
+
+A diagnostic test with a coherent probe can be interpreted in the same
+way.  The measurement outcome \(T\in\{0,1\}\) receives contributions from
+two conceptual ``paths'' corresponding to the physical signal generated
+in the presence or absence of disease:
+\[
+\text{(no disease) } D=0 \quad\longrightarrow\quad 
+\text{amplitude } a_0,
+\qquad
+\text{(disease) } D=1 \quad\longrightarrow\quad 
+\text{amplitude } a_1.
+\]
+When the probe--sample interaction retains coherence, these amplitudes
+combine prior to measurement:
+\[
+\mathrm{Amp}(T=1) = a_0 + a_1,
+\qquad
+P(T=1) = |\mathrm{Amp}(T=1)|^2.
+\]
+Expanding the squared magnitude yields
+\[
+P(T=1)
+= |a_0|^2 + |a_1|^2 
+  + 2\,\Re\!\big(a_0 a_1^*\big),
+\]
+where the cross-term \(2\,\Re(a_0 a_1^*)\) is the direct analogue of the
+interference pattern observed on the detection screen in a two-slit
+experiment.  
+This term is present only when the two ``paths'' preserve phase
+information and the measurement is sensitive to coherence.
+
+In the quantum-inspired diagnostic test model, the two path intensities
+correspond to classical error rates:
+\[
+|a_0|^2 = 1-\mathrm{Sp}, \qquad
+|a_1|^2 = \mathrm{Se},
+\]
+weighted by the underlying prevalence \(\pi\).  
+The coherence in the effective ensemble state appears through the
+off-diagonal element \(c = \kappa\sqrt{\pi(1-\pi)}\), while the
+coherence sensitivity of the diagnostic device is captured by the
+off-diagonal measurement parameter \(\gamma\).  
+The Born rule gives the resulting positive-test probability:
+\[
+P(T=1)
+= (1-\mathrm{Sp})(1-\pi)
+  + \mathrm{Se}\,\pi
+  + 2\gamma\kappa\sqrt{\pi(1-\pi)},
+\]
+where the third term plays the role of the two-slit interference
+contribution.  
+When either coherence in the state (\(\kappa = 0\)) or coherence
+sensitivity in the measurement (\(\gamma = 0\)) is absent, the
+interference term vanishes and the model reduces to the purely classical
+expression
+\[
+P(T=1) = (1-\mathrm{Sp})(1-\pi) + \mathrm{Se}\,\pi.
+\]
+
+Thus, the ``split-screen'' analogy provides an intuitive interpretation
+of the quantum-inspired diagnostic test: the observed positive-test
+probability results from the combination of a ``no-disease'' path and a
+``disease'' path, with an additional phase-sensitive interaction term
+that is mathematically identical to the interference contribution in the
+double-slit experiment.  Classical diagnostic testing corresponds to the
+regime in which at least one of the paths is incoherent or the
+measurement discards phase information.
+
+% ------------------------------------------------------------------
+
+\section{Discussion}
+
+\subsection*{Interpretation of \texorpdfstring{$\kappa$}{kappa}, \texorpdfstring{$\gamma$}{gamma}, and the Role of Entanglement}
+
+In the quantum-inspired single-test model, the parameter $\kappa$ represents the
+effective coherence of the probe--sample ensemble.  In physical modalities such
+as MRI, $\kappa$ is analogous to a dimensionless measure of transverse
+magnetization and encodes the degree to which spin coherence (e.g.\ T$_2$ or
+T$_2^*$) survives until readout.  In optical systems such as OCT or
+interferometric biosensors, $\kappa$ reflects the residual optical coherence
+after propagation and scattering through tissue.  In vibrational spectroscopy
+methods such as CARS, $\kappa$ corresponds to the magnitude of the induced
+molecular vibrational coherence, while in NV-center diamond magnetometry it is
+associated with electron-spin coherence times.  Across these modalities,
+$|\kappa|$ therefore quantifies the coherence structure present in the
+probe--sample state prior to measurement.
+
+The parameter $\gamma$ encodes the coherence sensitivity of the diagnostic
+device.  In MRI, $\gamma$ is determined by the pulse sequence and receiver
+design, which may either emphasize or deliberately average over phase
+information.  In OCT and other interferometric sensors, $\gamma$ reflects fringe
+visibility and phase stability in the interferometer.  In CARS and NV
+magnetometry, $\gamma$ captures the degree to which the detection process is
+phase sensitive (e.g.\ phase matching, echo sequences, or Ramsey-style
+measurements).  Setting $\gamma = 0$ reduces the measurement operator to a
+classical sensitivity/specificity model in which off-diagonal coherence does not
+contribute to the test outcome.
+
+Entanglement-based diagnostic schemes extend this single-system framework by
+using joint probe states $\rho_{SI}$ defined on
+$\mathcal{H}_S \otimes \mathcal{H}_I$.  Examples include quantum illumination,
+entanglement-assisted OCT, and correlation-based imaging modalities.  In such
+systems, diagnostic information is carried not only in local coherence
+(i.e.\ the $\kappa$-like structure of the marginal states) but also in
+nonclassical correlations between the signal and idler modes.  These
+correlations appear as off-diagonal structure in the joint density matrix and
+cannot be captured by a single $(\kappa,\gamma)$ pair.  Joint POVMs acting on
+the bipartite system can, in principle, yield enhanced sensitivity or
+signal-to-noise ratio in highly noisy biomedical environments, even when the
+entanglement is strongly degraded by loss.
+
+
+% ------------------------------------------------------------------
+% REFERENCES
+% ------------------------------------------------------------------
+% --- Bibliography Section ---
+
+% The parameter {9} tells LaTeX how much space to reserve for labels. 
+% Use {9} for single digits, {99} for double digits (10+ refs).
+\begin{thebibliography}{9}
+
+   \bibitem{helstrom1969quantum}
+    Carl W. Helstrom. 
+    Quantum detection and estimation theory.
+    \textit{Journal of Statistical Physics} 1(2) (1969): 231-252.
+
+    \bibitem{malley1993quantum}
+    James D. Malley and John Hornstein. 
+    Quantum statistical inference. 
+    \textit{Statistical Science}, pages 433--457, 1993.
+  
+    \bibitem{einstein1905}
+    Albert Einstein. 
+    \textit{Zur Elektrodynamik bewegter K{\"o}rper}. (German) 
+    [\textit{On the electrodynamics of moving bodies}]. 
+    Annalen der Physik, 322(10):891–921, 1905.
+
+    \bibitem{knuth84}
+    Donald E. Knuth. 
+    \textit{The TeXbook}. 
+    Addison-Wesley, Reading, Massachusetts, 1984.
+
+    \bibitem{collins2014estimation} 
+    J. Collins and M. Huynh. 
+    Estimation of diagnostic test accuracy without full verification: a review of latent class methods. 
+    \textit{Statistics in Medicine} 33(24) (2014): 4141-4169.
+
+\bibitem{chikere2019diagnostic} 
+    Chinyereugo M. Umemneku Chikere, et al. 
+    Diagnostic test evaluation methodology: a systematic review of methods employed to evaluate diagnostic tests in the absence of gold standard–an update. 
+    \textit{PLoS One} 14(10) (2019): e0223832.
+
+\bibitem{johnson2019gold} 
+    Wesley O. Johnson, Geoff Jones, and Ian A. Gardner. 
+    Gold standards are out and Bayes is in: Implementing the cure for imperfect reference tests in diagnostic accuracy studies. 
+    \textit{Preventive Veterinary Medicine} 167 (2019): 113-127.
+
+\bibitem{diggle2011estimating} 
+    Peter J. Diggle. 
+    Estimating prevalence using an imperfect test. 
+    \textit{Epidemiology Research International} 2011 (2011): 608719.
+
+\end{thebibliography}
+
+\end{document}

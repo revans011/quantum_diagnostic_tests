@@ -397,10 +397,8 @@ So: yes, the priors are constrained properly for physical validity; κ is additi
 ```{r}
 stan_code <- '
 data {
-  int<lower=0> N;          // number of subjects
-  int<lower=0, upper=N> y; // number of positive tests
-
-  // hyperparameters for Beta priors
+  int<lower=0> N;
+  int<lower=0, upper=N> y;
   real<lower=0> a_pi;
   real<lower=0> b_pi;
   real<lower=0> a_Se;
@@ -412,35 +410,31 @@ data {
 }
 
 parameters {
-  real<lower=0,upper=1> pi;     // prevalence
-  real<lower=0,upper=1> Se;     // sensitivity
-  real<lower=0,upper=1> Sp;     // specificity
-  real<lower=0,upper=1> kappa;  // state coherence
-  real<lower=-1,upper=1> eta;   // scaled measurement coherence
+  real<lower=0,upper=1> pi;
+  real<lower=0,upper=1> Se;
+  real<lower=0,upper=1> Sp;
+  real<lower=0,upper=1> kappa;
+  real<lower=-1,upper=1> eta;
 }
 
 transformed parameters {
-  real gamma;  // measurement coherence parameter
-  real p_pos;  // P(T = 1)
+  real gamma;
+  real<lower=0,upper=1> p_pos;
 
-  // enforce |gamma| <= sqrt((1-Sp)*Se)
   gamma = eta * sqrt( (1 - Sp) * Se );
 
-  // quantum-inspired probability of positive test
   p_pos = (1 - Sp) * (1 - pi)
           + Se * pi
           + 2 * gamma * kappa * sqrt( pi * (1 - pi) );
 }
 
 model {
-  // priors
   pi    ~ beta(a_pi,    b_pi);
   Se    ~ beta(a_Se,    b_Se);
   Sp    ~ beta(a_Sp,    b_Sp);
   kappa ~ beta(a_kappa, b_kappa);
-  eta   ~ uniform(-1, 1);   // shrinkage priors could be used instead
+  eta   ~ normal(0, 0.3);
 
-  // likelihood
   y ~ binomial(N, p_pos);
 }
 '
@@ -454,42 +448,188 @@ writeLines(stan_code, con = "quantum_one_test.stan")
 
 
 ```{r}
-# install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+# we recommend running this in a fresh R session or restarting your current session
+#install.packages("cmdstanr", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
 library(cmdstanr)
 
 # make sure cmdstan is installed once:
-# cmdstanr::install_cmdstan()
+ cmdstanr::install_cmdstan()
 
-# Compile the Stan model
+#------------------------------------------------------------------
+# 2. Compile the model
+#------------------------------------------------------------------
 mod <- cmdstan_model("quantum_one_test.stan")
 
-# Example data
-N <- 200
-y <- 47
-
-# Prior hyperparameters (adjust to taste)
+#------------------------------------------------------------------
+# 3. Data for the prostate DWI example
+#    N = 300, y = 100
+#    Priors from the paper:
+#      pi    ~ Beta(9,21)
+#      Se    ~ Beta(18,3)
+#      Sp    ~ Beta(12,8)
+#      kappa ~ Beta(2,6)
+#      eta   ~ Normal(0,0.3) truncated to [-1,1] (handled by bounds)
+#------------------------------------------------------------------
 stan_data <- list(
-  N       = N,
-  y       = y,
-  a_pi    = 1, b_pi    = 1,   # flat prior on pi
-  a_Se    = 2, b_Se    = 2,   # mild prior on Se
-  a_Sp    = 2, b_Sp    = 2,   # mild prior on Sp
-  a_kappa = 1, b_kappa = 1    # flat prior on kappa
+  N       = 300,
+  y       = 100,
+  a_pi    = 9,   b_pi    = 21,
+  a_Se    = 18,  b_Se    = 3,
+  a_Sp    = 12,  b_Sp    = 8,
+  a_kappa = 2,   b_kappa = 6
 )
 
-# Run HMC NUTS
+#------------------------------------------------------------------
+# 4. Fit the model with HMC NUTS
+#------------------------------------------------------------------
 fit <- mod$sample(
-  data       = stan_data,
-  seed       = 1234,
-  chains     = 4,
+  data            = stan_data,
+  seed            = 1234,
+  chains          = 4,
   parallel_chains = 4,
-  iter_warmup = 2000,
-  iter_sampling = 2000,
-  adapt_delta = 0.9   # NUTS tuning parameter
+  iter_warmup     = 2000,
+  iter_sampling   = 2000,
+  adapt_delta     = 0.9
 )
 
-# Print summary for key parameters
-fit$summary(variables = c("pi", "Se", "Sp", "kappa", "gamma"))
+#------------------------------------------------------------------
+# 5. Inspect posterior summaries
+#------------------------------------------------------------------
+fit$summary(variables = c("pi", "Se", "Sp", "kappa", "gamma", "eta", "p_pos"))
+
+# Optionally extract draws as a data.frame
+posterior_df <- as.data.frame(fit$draws(
+  variables = c("pi", "Se", "Sp", "kappa", "gamma", "eta", "p_pos")
+))
+
+head(posterior_df)
+```
+
+
+
+```{r}
+library(ggplot2)
+
+ggplot(posterior_df, aes(x = `1.pi`)) +
+  geom_histogram(bins = 60, color = "white") +
+  geom_vline(
+    xintercept = median(posterior_df$pi),
+    color = "red", linewidth = 1
+  ) +
+  theme_bw() +
+  labs(title = "Posterior distribution of π",
+       x = expression(pi),
+       y = "Density")
+```
+Now do the classical version with no quantum part
+
+
+```{r}
+stan_code <- '
+data {
+  int<lower=0> N;
+  int<lower=0, upper=N> y;
+  real<lower=0> a_pi;
+  real<lower=0> b_pi;
+  real<lower=0> a_Se;
+  real<lower=0> b_Se;
+  real<lower=0> a_Sp;
+  real<lower=0> b_Sp;
+  real<lower=0> a_kappa;
+  real<lower=0> b_kappa;
+}
+
+parameters {
+  real<lower=0,upper=1> pi;
+  real<lower=0,upper=1> Se;
+  real<lower=0,upper=1> Sp;
+  real<lower=0,upper=1> kappa;
+  real<lower=-1,upper=1> eta;
+}
+
+transformed parameters {
+  real gamma;
+  real<lower=0,upper=1> p_pos;
+
+  gamma = eta * sqrt( (1 - Sp) * Se );
+
+  p_pos = (1 - Sp) * (1 - pi)
+          + Se * pi;
+}
+
+model {
+  pi    ~ beta(a_pi,    b_pi);
+  Se    ~ beta(a_Se,    b_Se);
+  Sp    ~ beta(a_Sp,    b_Sp);
+  kappa ~ beta(a_kappa, b_kappa);
+  eta   ~ normal(0, 0.3);
+
+  y ~ binomial(N, p_pos);
+}
+'
 
 ```
 
+
+```{r}
+writeLines(stan_code, con = "quantum_one_test.stan")
+```
+
+
+```{r}
+# we recommend running this in a fresh R session or restarting your current session
+#install.packages("cmdstanr", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
+library(cmdstanr)
+
+# make sure cmdstan is installed once:
+ cmdstanr::install_cmdstan()
+
+#------------------------------------------------------------------
+# 2. Compile the model
+#------------------------------------------------------------------
+mod <- cmdstan_model("quantum_one_test.stan")
+
+#------------------------------------------------------------------
+# 3. Data for the prostate DWI example
+#    N = 300, y = 100
+#    Priors from the paper:
+#      pi    ~ Beta(9,21)
+#      Se    ~ Beta(18,3)
+#      Sp    ~ Beta(12,8)
+#      kappa ~ Beta(2,6)
+#      eta   ~ Normal(0,0.3) truncated to [-1,1] (handled by bounds)
+#------------------------------------------------------------------
+stan_data <- list(
+  N       = 300,
+  y       = 100,
+  a_pi    = 9,   b_pi    = 21,
+  a_Se    = 18,  b_Se    = 3,
+  a_Sp    = 12,  b_Sp    = 8,
+  a_kappa = 2,   b_kappa = 6
+)
+
+#------------------------------------------------------------------
+# 4. Fit the model with HMC NUTS
+#------------------------------------------------------------------
+fit <- mod$sample(
+  data            = stan_data,
+  seed            = 1234,
+  chains          = 4,
+  parallel_chains = 4,
+  iter_warmup     = 2000,
+  iter_sampling   = 2000,
+  adapt_delta     = 0.9
+)
+
+#------------------------------------------------------------------
+# 5. Inspect posterior summaries
+#------------------------------------------------------------------
+fit$summary(variables = c("pi", "Se", "Sp", "kappa", "gamma", "eta", "p_pos"))
+
+# Optionally extract draws as a data.frame
+posterior_df <- as.data.frame(fit$draws(
+  variables = c("pi", "Se", "Sp", "kappa", "gamma", "eta", "p_pos")
+))
+
+head(posterior_df)
+```
